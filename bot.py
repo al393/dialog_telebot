@@ -3,14 +3,16 @@ from telebot import types
 from settings import TOKEN
 from game import Game
 
+
 bot = telebot.TeleBot(TOKEN)
-userbot = None
+userbot_dict = {}
 
 
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
-    global userbot
-    userbot = Game(m.chat.id, m.chat.first_name)
+    global userbot_dict
+    userbot_dict[m.chat.id] = Game(m.chat.id, m.chat.first_name)
+    userbot = userbot_dict[m.chat.id]
     bot.send_message(m.chat.id, f"Привет {userbot.user_name},\nу нас есть новый список заданий!")
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     item1 = types.KeyboardButton("Посмотреть весь список")
@@ -28,7 +30,7 @@ def start(m, res=False):
 
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
-    global userbot
+    userbot = userbot_dict[message.chat.id]
     text = ""
     if not userbot:
         userbot = Game(message.chat.id, message.chat.first_name)
